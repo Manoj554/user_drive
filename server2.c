@@ -10,14 +10,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/sendfile.h>
+#include <dirent.h>
+
+/*Commands*/
+#define LIST_DIR "List_Directory"
+#define PUSH_DOWNLOAD_FILE "Download"
 
 #define IP_PROTOCOL 0
 #define PORT_NO     5000
 #define NET_BUF_SIZE 40960
 #define cipherKey 'S'
 #define sendrecvflag 0
+#define FILE_NAME_SIZE 100
 #define nofile "File Not Found!"
-
+#define EOL "\n"
 void clearBuf(char *b)
 {
     int i;
@@ -56,46 +62,70 @@ int sendFile(FILE *fp,char *buf,int s)
 
     return 0;
 }
-int main()
+void ListAll(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
 {
-    int sockfd,nBytes;
-    struct sockaddr_in addr_con;
-    int addrlen = sizeof(addr_con);
-    addr_con.sin_family = AF_INET;
-    addr_con.sin_port = htons(PORT_NO);
-    addr_con.sin_addr.s_addr = INADDR_ANY;
-    char net_buf[NET_BUF_SIZE];
+    printf("LIST_DIR command received %s \n",net_buf);
     FILE *fp;
-
-    /* Create server socket */
-    sockfd = socket(AF_INET, SOCK_DGRAM,IP_PROTOCOL);
-    if (sockfd == -1)
+    DIR *d;
+    struct dirent *dir;
+    char string[NET_BUF_SIZE];
+    d = opendir("./shared-storage/");
+    fp = fopen("./server-files/Directory_Index.txt","wb");
+    if (d)
     {
-        fprintf(stderr, "Error creating socket --> %s", strerror(errno));
+        printf("*********************Listed All Files********************\n");
+        while ((dir = readdir(d)) != NULL)
+        {
+            if(fp ==NULL)
+            {
+                printf("\nLIST_DIR command failed!!\n");
+            }
+            else
+            {
+                strcat(string,dir->d_name);
+                strcat(string,EOL);
+            }
 
-        exit(EXIT_FAILURE);
+            printf("%s\n", dir->d_name);
+        }
+        
+        printf("String Data : %s\n",string);
+        string[strlen(string) - 1] = '\0';
+        fwrite(string,sizeof(char),sizeof(string),fp);
+        closedir(d);
+
+        fclose(fp);
+        printf("*********************************************************\n");
     }
-    else
+
+    fp = fopen("./server-files/Directory_Index.txt","rb");
+    if(fp ==NULL)
+        {
+            printf("\nFile open failed!!\n");
+        }
+        else
+        {
+            printf("\nFile Open Successfull!!\n");
+        }
+    while(1)
     {
-        printf("\nFile Descriptor %d received\n",sockfd);
+        if(sendFile(fp,net_buf,NET_BUF_SIZE)){
+            sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+            clearBuf(net_buf);
+
+            break;
+        }
+        if(fp!=NULL)
+        {
+            fclose(fp);
+        }
     }
 
-    /* Zeroing server_addr struct */
-    //        memset(&server_addr, 0, sizeof(server_addr));
-    /* Construct server_addr struct */
-    /*        server_addr.sin_family = AF_INET;
-              inet_pton(AF_INET, SERVER_ADDRESS, &(server_addr.sin_addr));
-              server_addr.sin_port = htons(PORT_NUMBER);
-              */
-    /* Bind */
-    if ((bind(sockfd, (struct sockaddr *)&addr_con, sizeof(addr_con))) == -1)
-    {
-        fprintf(stderr, "Error on bind --> %s", strerror(errno));
-
-        exit(EXIT_FAILURE);
-    }
-
-    int count  = 0;
+}
+void PushDownloadFile(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+    FILE *fp;
+    int nBytes;
     while(1)
     {
         printf("\nWaiting for file name....\n");
@@ -134,6 +164,53 @@ int main()
         }
 
     }
+}
+int main()
+{
+    int sockfd,nBytes;
+    struct sockaddr_in addr_con;
+    int addrlen = sizeof(addr_con);
+    addr_con.sin_family = AF_INET;
+    addr_con.sin_port = htons(PORT_NO);
+    addr_con.sin_addr.s_addr = INADDR_ANY;
+    char net_buf[NET_BUF_SIZE];
+    FILE *fp;
 
+    /* Create server socket */
+    sockfd = socket(AF_INET, SOCK_DGRAM,IP_PROTOCOL);
+    if (sockfd == -1)
+    {
+        fprintf(stderr, "Error creating socket --> %s", strerror(errno));
+
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("\nFile Descriptor %d received\n",sockfd);
+    }
+
+    /* Bind */
+    if ((bind(sockfd, (struct sockaddr *)&addr_con, sizeof(addr_con))) == -1)
+    {
+        fprintf(stderr, "Error on bind --> %s", strerror(errno));
+
+        exit(EXIT_FAILURE);
+    }
+
+    /*Receiving command*/
+    while(1)
+    {
+    nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
+
+
+        if(strcmp(net_buf,LIST_DIR)==0)
+        {
+            ListAll(sockfd,net_buf,addr_con,addrlen);
+        }else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
+        {
+            PushDownloadFile(sockfd,net_buf,addr_con,addrlen);
+        }
+
+    }
     return 0;
 }

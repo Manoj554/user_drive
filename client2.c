@@ -10,6 +10,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/sendfile.h>
+#include <dirent.h>
+/*Commands*/
+#define LIST_DIR "List_Directory"
+#define PUSH_DOWNLOAD_FILE "Download"
 
 #define FILE_SIZE 100
 #define IP_PROTOCOL 0
@@ -84,8 +88,86 @@ void save_file(FILE *fp,char *buf,int s,char *file_name)
     fclose(fp);
 
 }
+void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,char *file_name)
+{
+    int nBytes;
+    FILE *fp;
+    strcpy(net_buf,PUSH_DOWNLOAD_FILE);
+    sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+    while(1)
+    {
+
+        printf("\nPlease Enter file name....\n");
+        scanf("%s",net_buf);
+        strcpy(file_name,net_buf);
+        if(strcmp(net_buf,EXIT)==0)
+        {
+            return;
+        }
+        sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+        printf("\n***********Data Received************\n");
+
+        while(1)
+        {
+            clearBuf(net_buf);
+            nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
+
+            /*saving file at client side*/
+            save_file(fp,net_buf,NET_BUF_SIZE,file_name);
+
+            if(recvFile(net_buf,NET_BUF_SIZE))
+            {
+                break;
+            }
+        }
+        printf("\n************************************\n"); 
+    }
+}
+
+void ListAllDriveFiles(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+    int nBytes;
+    strcpy(net_buf,LIST_DIR);
+    sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+    printf("\n***********Data Received************\n");
+
+    while(1)
+    {
+        clearBuf(net_buf);
+        nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
+
+        /*saving file at client side*/
+        //save_file(fp,net_buf,NET_BUF_SIZE,file_name);
+
+        if(recvFile(net_buf,NET_BUF_SIZE))
+        {
+            break;
+        }
+    }
+    printf("\n************************************\n"); 
+}
+void ListAllDownloaded()
+{
+    DIR *d;
+    struct dirent *dir;
+    d = opendir("./users-drive-download-files/");
+    if (d)
+    {
+
+    printf("\n***********Data Received************\n");
+        while ((dir = readdir(d)) != NULL)
+        {
+            printf("%s\n", dir->d_name);
+        }
+        closedir(d);
+    printf("\n************************************\n");
+    }
+}
+
+void Upload(){}
 int main()
 {
+    int choice;
     int sockfd,nBytes;
     struct sockaddr_in addr_con;
     int addrlen = sizeof(addr_con);
@@ -121,33 +203,34 @@ int main()
     {
         printf("\nFile Descriptor %d received\n",sockfd);
     }
+
+
     while(1)
     {
-
-        printf("\nPlease Enter file name....\n");
-        scanf("%s",net_buf);
-        strcpy(file_name,net_buf);
-        if(strcmp(net_buf,EXIT)==0)
+        printf("Enter\n1. List All Downloaded Files\n2. List All Files on server\n3. Download\n4. Upload\n5. Exit\n");
+        scanf("%d",&choice);
+        switch(choice)
         {
-            return 0;
+            case 1: ListAllDownloaded();
+                    break;
+
+            case 2: ListAllDriveFiles(sockfd,net_buf,addr_con,addrlen);
+                    break;
+
+
+            case 3: Download(sockfd,net_buf,addr_con,addrlen,file_name);
+                    break;
+
+
+            case 4: Upload();
+                    break;
+
+            case 5: return 0;
+
+            default: continue;
+
         }
-        sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
-        printf("\n***********Data Received************\n");
 
-        while(1)
-        {
-            clearBuf(net_buf);
-            nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
-
-            /*saving file at client side*/
-            save_file(fp,net_buf,NET_BUF_SIZE,file_name);
-
-            if(recvFile(net_buf,NET_BUF_SIZE))
-            {
-                break;
-            }
-        }
-        printf("\n************************************\n"); 
     }
     return 0;
 
