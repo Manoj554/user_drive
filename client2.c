@@ -12,6 +12,7 @@
 #include <sys/sendfile.h>
 #include <dirent.h>
 /*Commands*/
+#define END_CONNECTION "End_Connection"
 #define LIST_DIR "List_Directory"
 #define PUSH_DOWNLOAD_FILE "Download"
 
@@ -22,7 +23,7 @@
 #define cipherKey 'S'
 #define sendrecvflag 0
 #define EXIT "exit"
-#define IP_ADDRESS  "127.0.0.1"
+#define IP_ADDRESS  "192.168.56.101"
 #define nofile "File_Not_Found"
 
 void clearBuf(char *b)
@@ -95,8 +96,6 @@ void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,c
     FILE *fp;
     strcpy(net_buf,PUSH_DOWNLOAD_FILE);
     send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
-    while(1)
-    {
 
         printf("\nPlease Enter file name....\n");
         scanf("%s",net_buf);
@@ -122,9 +121,15 @@ void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,c
             }
         }
         printf("\n************************************\n"); 
-    }
 }
 
+void EndConnection(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+    int nBytes;
+    strcpy(net_buf,END_CONNECTION);
+    printf("Dissconnected...........\n");
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag); 
+}
 void ListAllDriveFiles(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
 {
     int nBytes;
@@ -238,7 +243,8 @@ int main()
             case 4: Upload();
                     break;
 
-            case 5: return 0;
+            case 5: EndConnection(clientSocket,net_buf,cliAddr,addrlen);
+                    return 0;
 
             default: continue;
 

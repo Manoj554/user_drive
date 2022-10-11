@@ -11,12 +11,14 @@
 #include <fcntl.h>
 #include <sys/sendfile.h>
 #include <dirent.h>
+#include <pthread.h>
 
 /*Commands*/
+#define END_CONNECTION "End_Connection"
 #define LIST_DIR "List_Directory"
 #define PUSH_DOWNLOAD_FILE "Download"
 
-#define IP_ADDRESS "127.0.0.1"
+#define IP_ADDRESS "192.168.56.101"
 #define IP_PROTOCOL 0
 #define PORT_NO     5556
 #define NET_BUF_SIZE 40960
@@ -25,6 +27,16 @@
 #define FILE_NAME_SIZE 100
 #define nofile "File_Not_Found"
 #define EOL "\n"
+
+typedef struct connection_data
+{
+    int clientSocket;
+    char *net_buf;
+    struct sockaddr_in serverAddr;
+    int addr_size;
+
+}connec_data_t;
+
 void clearBuf(char *b)
 {
     int i;
@@ -127,8 +139,6 @@ void PushDownloadFile(int sockfd,char *net_buf,struct sockaddr_in addr_con,int a
 {
     FILE *fp;
     int nBytes;
-    while(1)
-    {
         printf("\nWaiting for file name....\n");
         clearBuf(net_buf);
         nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
@@ -164,7 +174,41 @@ void PushDownloadFile(int sockfd,char *net_buf,struct sockaddr_in addr_con,int a
             }
         }
 
-    }
+}
+void *HandleConnection(void *new_socket_details)
+{
+    connec_data_t *parcel_ptr = (connec_data_t *) new_socket_details;
+
+    int clientSocket;
+    char *net_buf;
+    struct sockaddr_in serverAddr;
+    int addr_size;
+
+    clientSocket = parcel_ptr->clientSocket;
+    net_buf = parcel_ptr->net_buf ;
+    serverAddr = parcel_ptr->serverAddr;
+    addr_size =  parcel_ptr->addr_size;
+
+    /*Receiving command*/
+        while(1)
+        {
+            recv(clientSocket,net_buf,NET_BUF_SIZE,sendrecvflag);
+
+
+            if(strcmp(net_buf,LIST_DIR)==0)
+            {
+                ListAll(clientSocket,net_buf,serverAddr,addr_size);
+            }else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
+            {
+                PushDownloadFile(clientSocket,net_buf,serverAddr,addr_size);
+            }else if(strcmp(net_buf,END_CONNECTION)==0)
+            {
+                close(clientSocket);
+                break;
+            }
+
+        }
+        return NULL;
 }
 int main()
 {
@@ -252,23 +296,23 @@ int main()
         printf("Clients connected: %d\n\n",
                 ++cnt);
 
+        pthread_t t;
+        //int *pclient = malloc(sizeof(int));
+        //*pclient = clientSocket; 
 
+        connec_data_t *parcel_ptr;
+        connec_data_t parcel;
+        parcel.clientSocket = clientSocket;
+        parcel.net_buf = net_buf;
+        parcel.serverAddr = serverAddr;
+        parcel.addr_size = addr_size;
 
-        /*Receiving command*/
-        while(1)
-        {
-            recv(clientSocket,net_buf,NET_BUF_SIZE,sendrecvflag);
+        parcel_ptr = &parcel;
 
-
-            if(strcmp(net_buf,LIST_DIR)==0)
-            {
-                ListAll(clientSocket,net_buf,serverAddr,addr_size);
-            }else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
-            {
-                PushDownloadFile(clientSocket,net_buf,serverAddr,addr_size);
-            }
-
-        }
+        //HandleConnection(parcel_ptr);
+        
+        pthread_create(&t,NULL,HandleConnection,parcel_ptr);
+       
     }
     return 0;
 }
