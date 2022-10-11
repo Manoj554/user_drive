@@ -17,13 +17,13 @@
 
 #define FILE_SIZE 100
 #define IP_PROTOCOL 0
-#define PORT_NO     5000
+#define PORT_NO     5556
 #define NET_BUF_SIZE 40960
 #define cipherKey 'S'
 #define sendrecvflag 0
 #define EXIT "exit"
-#define IP_ADDRESS  "192.168.56.101"
-
+#define IP_ADDRESS  "127.0.0.1"
+#define nofile "File_Not_Found"
 
 void clearBuf(char *b)
 {
@@ -59,26 +59,27 @@ int recvFile(char *buf,int s)
 }
 void save_file(FILE *fp,char *buf,int s,char *file_name)
 {
-    char *nofile = "File Not Found!";
+    char file_error[] = "File_Not_Found";
     char base_address[FILE_SIZE] = "./users-drive-download-files/";
     strcat(base_address,file_name);
-    fp = fopen(base_address,"wb");
     char string[strlen(buf) - 1];
     int i = 0;
-    for(i=0;i<strlen(buf);i++)
+    for(i=0;i<strlen(buf)-1;i++)
         string[i] = Cipher(buf[i]);
+    if(strcmp(string,file_error)==0)
+    {
+        return;
+    }
 
+    fp = fopen(base_address,"wb");
     string[i] = '\0';
+
     printf("\nFile Name Received: %s\n",file_name);
 
+    printf("File Error: %s SIZE OF STRING: %ld STRLEN OF BUF %ld STRLEN of STRING %ld STRCMP %d STRING %s\n\n\n",file_error,sizeof(string),strlen(buf),strlen(string),strcmp(string,file_error),string);
     if(fp ==NULL)
     {
         printf("\nDownload failed!!\n");
-    }else if(strcmp(string,nofile)==0)//Solve This
-    {
-        printf("Entered Here \n");
-        fclose(fp);
-        return;
     }
     else
     {
@@ -93,7 +94,7 @@ void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,c
     int nBytes;
     FILE *fp;
     strcpy(net_buf,PUSH_DOWNLOAD_FILE);
-    sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
     while(1)
     {
 
@@ -104,13 +105,13 @@ void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,c
         {
             return;
         }
-        sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+        send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
         printf("\n***********Data Received************\n");
 
         while(1)
         {
             clearBuf(net_buf);
-            nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
+            nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
 
             /*saving file at client side*/
             save_file(fp,net_buf,NET_BUF_SIZE,file_name);
@@ -128,13 +129,14 @@ void ListAllDriveFiles(int sockfd,char *net_buf,struct sockaddr_in addr_con,int 
 {
     int nBytes;
     strcpy(net_buf,LIST_DIR);
-    sendto(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,addrlen);
+    printf("Inside List Drive\n");
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
     printf("\n***********Data Received************\n");
 
     while(1)
     {
         clearBuf(net_buf);
-        nBytes = recvfrom(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag,(struct sockaddr*)&addr_con,&addrlen);
+        nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
 
         /*saving file at client side*/
         //save_file(fp,net_buf,NET_BUF_SIZE,file_name);
@@ -154,13 +156,13 @@ void ListAllDownloaded()
     if (d)
     {
 
-    printf("\n***********Data Received************\n");
+        printf("\n***********Data Received************\n");
         while ((dir = readdir(d)) != NULL)
         {
             printf("%s\n", dir->d_name);
         }
         closedir(d);
-    printf("\n************************************\n");
+        printf("\n************************************\n");
     }
 }
 
@@ -168,43 +170,54 @@ void Upload(){}
 int main()
 {
     int choice;
-    int sockfd,nBytes;
-    struct sockaddr_in addr_con;
-    int addrlen = sizeof(addr_con);
-    addr_con.sin_family = AF_INET;
-    addr_con.sin_port = htons(PORT_NO);
-    addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    
+    // char array to store incoming and outgoing message
     char net_buf[NET_BUF_SIZE]; /* Used for Data Transfer*/
     char file_name[FILE_SIZE];/* Requested File Name */
     FILE *fp;
+    socklen_t addrlen;// = sizeof(addr_con);
+                      // Socket id
+    int clientSocket, ret;
 
-    /* Create server socket */
-    sockfd = socket(AF_INET, SOCK_DGRAM,IP_PROTOCOL);
-    if (sockfd == -1)
-    {
-        fprintf(stderr, "Error creating socket --> %s", strerror(errno));
+    // Client socket structure
+    struct sockaddr_in cliAddr;
 
-        exit(EXIT_FAILURE);
+    struct sockaddr_in serverAddr;
+
+
+    // Creating socket id
+    clientSocket = socket(AF_INET,
+            SOCK_STREAM, 0);
+
+    if (clientSocket < 0) {
+        printf("Error in connection.\n");
+        exit(1);
     }
-    else
-    {
-        printf("\nFile Descriptor %d received\n",sockfd);
+    printf("Client Socket is created.\n");
+
+    // Initializing socket structure with NULL
+    memset(&cliAddr, '\0', sizeof(cliAddr));
+
+
+    // Assigning port number and IP address
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(PORT_NO);
+
+    // 127.0.0.1 is Loopback IP
+    serverAddr.sin_addr.s_addr
+        = inet_addr(IP_ADDRESS);
+
+    // connect() to connect to the server
+    ret = connect(clientSocket,
+            (struct sockaddr*)&serverAddr,
+            sizeof(serverAddr));
+
+    if (ret < 0) {
+        printf("Error in connection.\n");
+        exit(1);
     }
 
-
-
-    if (sockfd == -1)
-    {
-        fprintf(stderr, "Error on bind --> %s", strerror(errno));
-
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        printf("\nFile Descriptor %d received\n",sockfd);
-    }
-
-
+    printf("Connected to Server.\n");
     while(1)
     {
         printf("Enter\n1. List All Downloaded Files\n2. List All Files on server\n3. Download\n4. Upload\n5. Exit\n");
@@ -214,11 +227,11 @@ int main()
             case 1: ListAllDownloaded();
                     break;
 
-            case 2: ListAllDriveFiles(sockfd,net_buf,addr_con,addrlen);
+            case 2: ListAllDriveFiles(clientSocket,net_buf,cliAddr,addrlen);
                     break;
 
 
-            case 3: Download(sockfd,net_buf,addr_con,addrlen,file_name);
+            case 3: Download(clientSocket,net_buf,cliAddr,addrlen,file_name);
                     break;
 
 
