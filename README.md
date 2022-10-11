@@ -1,19 +1,19 @@
 # user_drive
-To run code 
-Donload the repository and run the binary on your local machine
+To run code <br />
+Download the repository and run the binary on your local machine <br />
 
-create 2 folders 
-1.)users-drive-download-files
-2.)shared-storage 
-
-
-DIR STRUCTURE
-
-users-drive-download-files, 
-shared-storage,
-client2.c,
-server2.c,
-
-
-shared storage contains server files (download files)
-user drive download file contains downloaded floes from server
+create 2 folders <br />
+1.)users-drive-download-files <br />
+2.)shared-storage <br />
+<br />
+<br />
+DIR STRUCTURE <br />
+<br />
+users-drive-download-files<br /> 
+shared-storage<br />
+client2.c<br />
+server2.c<br />
+<br />
+<br />
+shared storage contains server files (download files)<br />
+user drive download file contains downloaded files from server<br />
