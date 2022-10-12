@@ -78,18 +78,18 @@ int sendFile(FILE *fp,char *buf,int s)
 void ListAll(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
 {
     printf("LIST_DIR command received %s \n",net_buf);
-    FILE *fp;
+    FILE *fp1,*fp2;
     DIR *d;
     struct dirent *dir;
     char string[NET_BUF_SIZE];
     d = opendir("./shared-storage/");
-    fp = fopen("./server-files/Directory_Index.txt","wb");
+    fp1 = fopen("./server-files/Directory_Index.txt","wb");
     if (d)
     {
         printf("*********************Listed All Files********************\n");
         while ((dir = readdir(d)) != NULL)
         {
-            if(fp ==NULL)
+            if(fp1 ==NULL)
             {
                 printf("\nLIST_DIR command failed!!\n");
             }
@@ -99,20 +99,20 @@ void ListAll(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
                 strcat(string,EOL);
             }
 
-            printf("%s\n", dir->d_name);
+           //printf("%s\n", dir->d_name);
         }
 
-        printf("String Data : %s\n",string);
         string[strlen(string) - 1] = '\0';
-        fwrite(string,sizeof(char),sizeof(string),fp);
+        printf("String Data : %s\n",string);
+        fwrite(string,sizeof(char),sizeof(string),fp1);
         closedir(d);
 
-        fclose(fp);
+        fclose(fp1);
         printf("*********************************************************\n");
     }
-
-    fp = fopen("./server-files/Directory_Index.txt","rb");
-    if(fp ==NULL)
+    clearBuf(net_buf);
+    fp2 = fopen("./server-files/Directory_Index.txt","rb");
+    if(fp2 ==NULL)
     {
         printf("\nFile open failed!!\n");
     }
@@ -122,15 +122,15 @@ void ListAll(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
     }
     while(1)
     {
-        if(sendFile(fp,net_buf,NET_BUF_SIZE)){
-            send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
-            clearBuf(net_buf);
+        if(sendFile(fp2,string,NET_BUF_SIZE)){
+            send(sockfd,string,NET_BUF_SIZE,sendrecvflag);
+            clearBuf(string);
 
             break;
         }
-        if(fp!=NULL)
+        if(fp2!=NULL)
         {
-            fclose(fp);
+            fclose(fp2);
         }
     }
 
