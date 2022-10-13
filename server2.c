@@ -17,7 +17,13 @@
 #define END_CONNECTION "End_Connection"
 #define LIST_DIR "List_Directory"
 #define PUSH_DOWNLOAD_FILE "Download"
+#define PUSH_UPLOAD_FILE "Upload"
+#define DELETE "Delete"
 
+#define CMD_SUCCESS "done"
+#define CMD_NOT_SUCCESS "notdone"
+
+#define FILE_SIZE 100
 #define IP_ADDRESS "192.168.56.101"
 #define IP_PROTOCOL 0
 #define PORT_NO     5556
@@ -49,6 +55,119 @@ char Cipher(char ch)
 {
     return ch ^ cipherKey; //Encryption using XOR
 }
+
+int recvFile_save(char *buf,int s,char *file_name)
+{
+    FILE *fp;
+    int i;
+    char ch;
+    char file_error[] = "File_Not_Found";
+    char base_address[FILE_SIZE] = "./shared-storage/";
+    strcat(base_address,file_name);
+/*    if(strcmp(buf,file_error)==0)
+    {
+        return;
+    }
+*/
+    fp = fopen(base_address,"wb");
+
+    if(fp == NULL)
+    {
+        printf("\nFile open error\n");
+        return -1;
+    }
+    for(i = 0;i<s;i++)
+    {
+        ch = buf[i];
+        ch = Cipher(ch);
+        if(ch == EOF)
+        {
+            return 1;
+        }
+        else
+        {
+            fputc(ch,fp);
+            printf("%c",ch);
+            //sleep(2);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+void DeleteFile(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+    char file_name[FILE_SIZE];
+        printf("\nWaiting for file name to be deleted....\n");
+        //clearBuf(net_buf);
+        recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+
+       printf("File Name Received: %s\n",net_buf);
+
+       strcpy(file_name,net_buf);
+
+       clearBuf(net_buf);
+       char base_address[FILE_SIZE] = "./shared-storage/";
+       strcat(base_address,file_name);
+
+       if(remove(base_address) == 0)
+       {
+           strcpy(net_buf,CMD_SUCCESS);
+       }
+       else
+       {
+           strcpy(net_buf,CMD_NOT_SUCCESS);
+       }
+       send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+       clearBuf(net_buf);
+       //printf("File Received: %s\n",net_buf);       
+}
+/*Receive file from client*/
+void GetUserFile(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+    FILE *fp;
+    int nBytes;
+    char file_name[FILE_SIZE];
+        printf("\nWaiting for uploaded file name....\n");
+        //clearBuf(net_buf);
+        nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+
+       printf("File Name Received: %s\n",net_buf);
+
+       strcpy(file_name,net_buf);
+
+
+       printf("File Received: %s\n",net_buf);       
+
+       printf("********************File Content*******************\n");       
+       while(1)
+       {
+        clearBuf(net_buf);
+        nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+
+
+        /*saving file at client side*/
+        /*if(file_found(net_buf,NET_BUF_SIZE)==-1)
+        {
+            break;
+        }*/
+
+        if(recvFile_save(net_buf,NET_BUF_SIZE,file_name))
+        {
+
+            break;
+        }
+    }
+    printf("\n***************************************************\n");
+
+}
+
+
+
+
+
+
 int sendFile(FILE *fp,char *buf,int s)
 {
     int i, len;
@@ -102,7 +221,7 @@ void ListAll(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
            //printf("%s\n", dir->d_name);
         }
 
-        string[strlen(string) - 1] = '\0';
+        string[strlen(string) - 1] = EOF;
         printf("String Data : %s\n",string);
         fwrite(string,sizeof(char),sizeof(string),fp1);
         closedir(d);
@@ -198,10 +317,20 @@ void *HandleConnection(void *new_socket_details)
             if(strcmp(net_buf,LIST_DIR)==0)
             {
                 ListAll(clientSocket,net_buf,serverAddr,addr_size);
-            }else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
+            }
+            else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
             {
                 PushDownloadFile(clientSocket,net_buf,serverAddr,addr_size);
-            }else if(strcmp(net_buf,END_CONNECTION)==0)
+            }
+            else if(strcmp(net_buf,PUSH_UPLOAD_FILE)==0)
+            {
+                GetUserFile(clientSocket,net_buf,serverAddr,addr_size);
+            }
+            else if(strcmp(net_buf,DELETE) == 0)
+            {
+                DeleteFile(clientSocket,net_buf,serverAddr,addr_size);
+            }
+            else if(strcmp(net_buf,END_CONNECTION)==0)
             {
                 close(clientSocket);
                 break;

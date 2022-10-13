@@ -15,7 +15,11 @@
 #define END_CONNECTION "End_Connection"
 #define LIST_DIR "List_Directory"
 #define PUSH_DOWNLOAD_FILE "Download"
+#define PUSH_UPLOAD_FILE "Upload"
+#define DELETE "Delete"
 
+#define CMD_SUCCESS "done"
+#define CMD_NOT_SUCCESS "notdone"
 #define FILE_SIZE 100
 #define IP_PROTOCOL 0
 #define PORT_NO     5556
@@ -113,10 +117,119 @@ int file_found(char *buf,int s)
 
    return 0;
 }
-void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,char *file_name)
+int sendFile(FILE *fp,char *buf,int s)
+{
+    int i, len;
+    if(fp==NULL)
+    {
+        strcpy(buf,nofile);
+        len = strlen(nofile);
+        buf[len] = EOF;
+        for(i = 0;i<=len;i++)
+        {
+            buf[i] = Cipher(buf[i]);
+        }
+        return 1;
+    }
+    char ch,ch2;
+    for(i =0;i<s;i++)
+    {
+        ch = fgetc(fp);
+        ch2 = Cipher(ch);
+        buf[i] = ch2;
+        if(ch == EOF)
+            return 1;
+    }
+
+    return 0;
+}
+
+void Delete(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
+{
+
+    int nBytes;
+    FILE *fp;
+    char *file_name;
+    clearBuf(net_buf);
+    strcpy(net_buf,DELETE);
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+    clearBuf(net_buf);
+    printf("\nPlease Enter file name to be deleted....\n");
+    scanf("%s",net_buf);
+    //strcpy(file_name,net_buf);
+    if(strcmp(net_buf,EXIT)==0)
+    {
+        return;
+    }
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+    clearBuf(net_buf);
+
+    recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+    
+    if(strcmp(net_buf,CMD_SUCCESS)==0)
+    {
+        printf("File Deleted Sucessfully\n");
+    }
+    else
+    {
+        printf("%s\n",nofile);
+    }
+}
+void Upload(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen)
 {
     int nBytes;
     FILE *fp;
+    char *file_name;
+    clearBuf(net_buf);
+    strcpy(net_buf,PUSH_UPLOAD_FILE);
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+    clearBuf(net_buf);
+    printf("\nPlease Enter file name to upload....\n");
+    scanf("%s",net_buf);
+    //strcpy(file_name,net_buf);
+    if(strcmp(net_buf,EXIT)==0)
+    {
+        return;
+    }
+    send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+    printf("%s\n",net_buf);
+    char base_address[100] = "./users-drive-download-files/";
+        //relative_address = net_buf;
+        strcat(base_address,net_buf);
+        //printf("Concatanated address : %s\n",base_address);
+        fp = fopen(base_address,"rb");
+
+        if(fp == NULL)
+        {
+            printf("\nFile open failed\n");
+        }
+        else
+        {
+            printf("\nFile open successfully\n");
+        }
+
+    //printf("\n***********Downloaded Content************\n");
+
+       while(1)
+        {
+            printf("Inside Loop\n");
+            //count++;
+            if(sendFile(fp,net_buf,NET_BUF_SIZE)){
+                send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
+                clearBuf(net_buf);
+
+                break;
+            }
+            if(fp!=NULL)
+            {
+                fclose(fp);
+            }
+        }
+
+}
+void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,char *file_name)
+{
+    int nBytes;
     clearBuf(net_buf);
     strcpy(net_buf,PUSH_DOWNLOAD_FILE);
     send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
@@ -129,7 +242,7 @@ void Download(int sockfd,char *net_buf,struct sockaddr_in addr_con,int addrlen,c
         return;
     }
     send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
-    printf("\n***********Data Received************\n");
+    printf("\n***********Downloaded Content************\n");
 
     while(1)
     {
@@ -166,7 +279,7 @@ void ListAllDriveFiles(int sockfd,char *net_buf,struct sockaddr_in addr_con,int 
     printf("Inside List Drive\n");
     send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
     clearBuf(net_buf);
-    printf("\n***********Data Received************\n");
+    printf("\n***********************User Drive Files*************************\n");
 
     while(1)
     {
@@ -182,7 +295,7 @@ void ListAllDriveFiles(int sockfd,char *net_buf,struct sockaddr_in addr_con,int 
             break;
         }
     }
-    printf("\n************************************\n"); 
+    printf("\n*****************************************************************\n"); 
 }
 void ListAllDownloaded()
 {
@@ -202,7 +315,6 @@ void ListAllDownloaded()
     }
 }
 
-void Upload(){}
 int main()
 {
     int choice;
@@ -255,7 +367,7 @@ int main()
     printf("Connected to Server.\n");
     while(1)
     {
-        printf("Enter\n1. List All Downloaded Files\n2. List All Files on server\n3. Download\n4. Upload\n5. Exit\n");
+        printf("Enter\n1. List All Downloaded Files\n2. List All Files on server\n3. Download\n4. Upload\n5. Delete\n6. Exit\n");
         scanf("%d",&choice);
         switch(choice)
         {
@@ -270,10 +382,13 @@ int main()
                     break;
 
 
-            case 4: Upload();
+            case 4: Upload(clientSocket,net_buf,cliAddr,addrlen);
                     break;
 
-            case 5: EndConnection(clientSocket,net_buf,cliAddr,addrlen);
+            case 5: Delete(clientSocket,net_buf,cliAddr,addrlen);
+                    break;
+
+            case 6: EndConnection(clientSocket,net_buf,cliAddr,addrlen);
                     return 0;
 
             default: continue;
