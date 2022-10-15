@@ -1,0 +1,1 @@
+extern int AuthenticationRequest(int sockfd,char *net_buf,int addrlen);
