@@ -1,0 +1,1 @@
+extern void *HandleConnection(void *new_socket_details);
