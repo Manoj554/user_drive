@@ -1,4 +1,37 @@
+
+/*
+*
+*
+*File name : Common.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Contains common functions used across all the modules frequently 
+*
+*
+*
+*/
+
 #include "../../client.h"
+
+/*
+*
+*
+*Function name : clearBuf()
+*
+*
+*Author : Team 4
+*
+*
+Description : Set all memory values to ‘\0’ of the char pointer.
+*
+*
+*
+*/
+
+
 void clearBuf(char *b)
 {
   int i;
@@ -7,12 +40,46 @@ void clearBuf(char *b)
     b[i] = '\0';
   }
 }
+
+/*
+*
+*
+*File name : Cipher()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to encrypt and decrypt the file content character by character.
+*
+*
+*
+*/
+
+
 char Cipher(char ch)
 {
   return ch ^ cipherKey; //Encryption using XOR
 
 }
-int recvFile_save(char *buf,int s,char *file_name)
+
+/*
+*
+*
+*File name : save_file()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to save the file on clienthe t side with the specified filename by server.
+*
+*
+*
+*/
+
+
+int save_file(char *buf,int s,char *file_name)
 {
   FILE *fptr;
   int i;
@@ -53,7 +120,23 @@ return -1;
   return 0;
 }
 
-int recvFile(char *buf,int s)
+/*
+*
+*
+*Function name : recv_file()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to decrypt the received file content 
+*
+*
+*
+*/
+
+
+int recv_file(char *buf,int s)
 {
   int i, cnt = 1;
   char ch;
@@ -81,6 +164,22 @@ int recvFile(char *buf,int s)
 
   return 0;
 }
+
+/*
+*
+*
+*Function name : file_found()
+*
+*
+*Author : Team 4
+*
+*
+Description : Checks if the file present on client side in download folder 
+*
+*
+*
+*/
+
 int file_found(char *buf,int s)
 {
   char file_error[] = "File_Not_Found";
@@ -91,7 +190,7 @@ int file_found(char *buf,int s)
     string[i] = Cipher(buf[i]);
   }
 
-  printf("String: %s\n",string);
+  
   if(strcmp(string,file_error)==0)
   {
     return -1;
@@ -99,7 +198,24 @@ int file_found(char *buf,int s)
 
   return 0;
 }
-int sendFile(FILE *fp,char *buf,int s)
+
+/*
+*
+*
+*Function name : send_file()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to encrypt the contents of the file to be sent.
+*
+*
+*
+*/
+
+
+int send_file(FILE *fp,char *buf,int s)
 {
   int i, len;
   if(fp==NULL)
@@ -126,7 +242,24 @@ int sendFile(FILE *fp,char *buf,int s)
   return 0;
 }
 
-void EndConnection(int sockfd,char *net_buf,int addrlen)
+/*
+*
+*
+*Function name : end_connection()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to end connection from client side works as logout
+*
+*
+*
+*/
+
+
+
+void end_connection(int sockfd,char *net_buf)
 {
   strcpy(net_buf,END_CONNECTION);
   printf("[-] Client is disconnected...........\n");

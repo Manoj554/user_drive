@@ -1,3 +1,18 @@
+/*
+ *
+ *
+ *File name : server.c
+ *
+ *
+ *Author : Team 4
+ *
+ *
+ * Description : Initializing and setting pararametrs of concurrent server implemented using threads 
+ *
+ *
+ *
+ */
+
 #include "server.h"
 
 typedef struct connection_data
@@ -51,7 +66,7 @@ int main()
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT_NO);
 
-    // 127.0.0.1 is a loopback address
+    //IP address
     serverAddr.sin_addr.s_addr
         = inet_addr(IP_ADDRESS);
 
@@ -96,22 +111,19 @@ int main()
                 ++cnt);
 
         pthread_t t;
-        //int *pclient = malloc(sizeof(int));
-        //*pclient = clientSocket; 
 
+        //arguments to be passed in pthread_create for client handler function 
         connec_data_t *parcel_ptr;
         connec_data_t parcel;
         parcel.clientSocket = clientSocket;
         parcel.net_buf = net_buf;
-       // parcel.serverAddr = serverAddr;
-        parcel.addr_size = addr_size;
 
         parcel_ptr = &parcel;
 
         //HandleConnection(parcel_ptr);
-        
-        pthread_create(&t,NULL,HandleConnection,parcel_ptr);
-       
+
+        pthread_create(&t,NULL,handle_connection,parcel_ptr);
+
     }
     return EXIT_SUCCESS;
 }

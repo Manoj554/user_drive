@@ -1,6 +1,22 @@
+/*
+*
+*
+*File name : Authentication.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Checks for the username and password in user database and provides permission to client. 
+*
+*
+*
+*/
+
 #include "../../server.h"
 #include <netinet/in.h>
 
+/*structure to hold user info and permissions*/
 struct account {
     char id[20];
     char password[20];
@@ -22,7 +38,7 @@ int read_file(struct account accounts[])
             ++i;
     }
     int j=0;
-    rewind(fp);  // Line I added
+    rewind(fp); 
         // read each line and put into accounts
     while(j!=i-1) {
         fscanf(fp, "%s %s %s %s %s", accounts[j].id, accounts[j].password, accounts[j].read, accounts[j].write, accounts[j].delete);
@@ -32,11 +48,9 @@ int read_file(struct account accounts[])
 }
 
 /*Authentication of user*/
-void Authentication(int sockfd,char *net_buf,int addrlen)
+void authentication(int sockfd,char *net_buf)
 {
     int total_entries = read_file(accounts);
-    printf("%s %s %s %s %s\n", accounts[0].id, accounts[0].password, accounts[0].read, accounts[0].write, accounts[0].delete);
-    //printf("%s %s\n", accounts[0].id, accounts[0].password);
     printf("[+] Authentication process start from client sockfd %d \n", sockfd);
     char username[20];
     char password[20];
@@ -58,7 +72,6 @@ void Authentication(int sockfd,char *net_buf,int addrlen)
             }
         }
         printf("[+] username received : %s\n",net_buf);
-        printf("2nd : %s permission : %s\n",net_buf,permission);
         if(strcmp(username,net_buf) == 0)
         {
             strcpy(net_buf,CMD_SUCCESS);
@@ -66,6 +79,7 @@ void Authentication(int sockfd,char *net_buf,int addrlen)
             clearBuf(net_buf);
             recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
         printf("[+] password received : %s\n",net_buf);
+
             /*Attending Request of Correct Password From Client*/
             if(strcmp(password,net_buf)==0)
             {

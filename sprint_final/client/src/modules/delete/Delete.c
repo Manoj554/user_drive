@@ -1,5 +1,20 @@
+/*
+*
+*
+*File name : Delete.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to delete the files present on the server by sending commands
+*
+*
+*
+*/
+
 #include "../../client.h"
-void Delete(int sockfd,char *net_buf,int addrlen)
+void delete(int sockfd,char *net_buf)
 {
 
     int nBytes;

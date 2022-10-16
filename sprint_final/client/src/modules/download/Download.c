@@ -1,6 +1,21 @@
+/*
+*
+*
+*File name : Download.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to download the files from server shared storage
+*
+*
+*
+*/
+
 #include "../../client.h"
 
-void Download(int sockfd,char *net_buf,int addrlen,char *file_name)
+void download(int sockfd,char *net_buf,char *file_name)
 {
     int nBytes;
     clearBuf(net_buf);
@@ -30,7 +45,7 @@ void Download(int sockfd,char *net_buf,int addrlen,char *file_name)
             break;
         }
 
-        if(recvFile_save(net_buf,NET_BUF_SIZE,file_name))
+        if(save_file(net_buf,NET_BUF_SIZE,file_name))
         {
             break;
         }

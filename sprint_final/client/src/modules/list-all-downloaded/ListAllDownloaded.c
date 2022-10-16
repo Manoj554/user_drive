@@ -1,6 +1,21 @@
+/*
+*
+*
+*File name : ListAllDowloaded.h
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to display the files present on the client's user-drive-download-files. 
+*
+*
+*
+*/
+
 #include "../../client.h"
 
-void ListAllDownloaded()
+void list_all_downloaded()
 {
     printf("[+] All downloaded files \n");
 

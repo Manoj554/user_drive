@@ -1,3 +1,17 @@
+/*
+ *
+ *
+ *File name : client.c
+ *
+ *
+ *Author : Team 4
+ *
+ *
+ * Description : Initializing and setting pararametrs of client for connection with server
+ *
+ *
+ *
+ */
 
 #include "./client.h"
 char permission[30];
@@ -6,9 +20,8 @@ int main()
     int choice;
 
     // char array to store incoming and outgoing message
-    char net_buf[NET_BUF_SIZE]; /* Used for Data Transfer*/
+    char net_buf[NET_BUF_SIZE]; /* Used for Data and Command Transfer*/
     char file_name[FILE_SIZE];/* Requested File Name */
-    FILE *fp;
     socklen_t addrlen;// = sizeof(addr_con);
                       // Socket id
     int clientSocket, ret;
@@ -55,16 +68,16 @@ int main()
     printf("[ok] Connected to server.\n");
     printf("[ok] Please login to continue ... \n");
 
-    int auth_check = AuthenticationRequest(clientSocket,net_buf,addrlen);
+    int auth_check = authentication_request(clientSocket,net_buf);
 
     if(auth_check != 0)
     {
         printf("[failed] multiple login attempt and failed!!! \n");
-        EndConnection(clientSocket,net_buf,addrlen);
+        end_connection(clientSocket,net_buf);
         return -1;
     }
 
-    UserInputValidation(clientSocket,net_buf,addrlen,file_name);
+    user_choice(clientSocket,net_buf,file_name);
 
     return EXIT_SUCCESS;
 }

@@ -1,28 +1,39 @@
+/*
+*
+*
+*File name : HandleConnection.c
+*
+*
+*Author : Team 4
+*
+*
+Description : It manages the services and connection for each user provided by the server. 
+*
+*
+*
+*/
+
 #include "../../server.h"
+
 
 typedef struct connection_data
 {
     int clientSocket;
     char *net_buf;
-    struct sockaddr_in serverAddr;
-    int addr_size;
 
 }connec_data_t;
 
 
-void *HandleConnection(void *new_socket_details)
+void *handle_connection(void *new_socket_details)
 {
     connec_data_t *parcel_ptr = (connec_data_t *) new_socket_details;
 
     int clientSocket;
     char *net_buf;
-    struct sockaddr_in serverAddr;
-    int addr_size;
 
     clientSocket = parcel_ptr->clientSocket;
     net_buf = parcel_ptr->net_buf ;
-    serverAddr = parcel_ptr->serverAddr;
-    addr_size =  parcel_ptr->addr_size;
+
 
     /*Receiving command*/
         while(1)
@@ -38,24 +49,24 @@ void *HandleConnection(void *new_socket_details)
             }*/
             if(strcmp(net_buf,AUTH_REQUEST)==0)
             {
-                Authentication(clientSocket,net_buf,addr_size);
+                authentication(clientSocket,net_buf);
             }
 
             if(strcmp(net_buf,LIST_DIR)==0)
             {
-                ListAll(clientSocket,net_buf,addr_size);
+                list_all(clientSocket,net_buf);
             }
             else if(strcmp(net_buf,PUSH_DOWNLOAD_FILE)==0)
             {
-                PushDownloadFile(clientSocket,net_buf,addr_size);
+                push_download_file(clientSocket,net_buf);
             }
             else if(strcmp(net_buf,PUSH_UPLOAD_FILE)==0)
             {
-                GetUserFile(clientSocket,net_buf,addr_size);
+                get_user_file(clientSocket,net_buf);
             }
             else if(strcmp(net_buf,DELETE) == 0)
             {
-                DeleteFile(clientSocket,net_buf,addr_size);
+                delete_file(clientSocket,net_buf);
             }
             else if(strcmp(net_buf,END_CONNECTION)==0)
             {

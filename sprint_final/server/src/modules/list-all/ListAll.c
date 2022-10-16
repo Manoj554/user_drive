@@ -1,5 +1,20 @@
+/*
+*
+*
+*File name : ListAll.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to display the files present on the server to clients on request. 
+*
+*
+*
+*/
+
 #include "../../server.h"
-void ListAll(int sockfd,char *net_buf,int addrlen)
+void list_all(int sockfd,char *net_buf)
 {
     printf("[+] LIST_DIR command received %s \n",net_buf);
     FILE *fp1,*fp2;
@@ -22,12 +37,9 @@ void ListAll(int sockfd,char *net_buf,int addrlen)
                 strcat(string,dir->d_name);
                 strcat(string,EOL);
             }
-
-           //printf("%s\n", dir->d_name);
         }
 
         string[strlen(string) - 1] = EOF;
-        //printf("String Data : %s\n",string);
         fwrite(string,sizeof(char),sizeof(string),fp1);
         closedir(d);
 
@@ -46,7 +58,7 @@ void ListAll(int sockfd,char *net_buf,int addrlen)
     }
     while(1)
     {
-        if(sendFile(fp2,string,NET_BUF_SIZE)){
+        if(send_file(fp2,string,NET_BUF_SIZE)){
             send(sockfd,string,NET_BUF_SIZE,sendrecvflag);
             clearBuf(string);
 

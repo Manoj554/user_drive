@@ -1,5 +1,20 @@
+/*
+*
+*
+*File name : PushDownloadFiles.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to send the files present on the server to clients on request.
+*
+*
+*
+*/
+
 #include "../../server.h"
-void PushDownloadFile(int sockfd,char *net_buf,int addrlen)
+void push_download_file(int sockfd,char *net_buf)
 {
     FILE *fp;
     int nBytes;
@@ -26,7 +41,7 @@ void PushDownloadFile(int sockfd,char *net_buf,int addrlen)
         while(1)
         {
             //count++;
-            if(sendFile(fp,net_buf,NET_BUF_SIZE)){
+            if(send_file(fp,net_buf,NET_BUF_SIZE)){
                 send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
                 clearBuf(net_buf);
 

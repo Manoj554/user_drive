@@ -1,6 +1,21 @@
+/*
+*
+*
+*File name : Authentication.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Sends the username and password to server for authenticattion and permission check.
+*
+*
+*
+*/
+
 #include "../../client.h"
 
-int AuthenticationRequest(int sockfd,char *net_buf,int addrlen)
+int authentication_request(int sockfd,char *net_buf)
 {
     char username[20];
     char password[20];

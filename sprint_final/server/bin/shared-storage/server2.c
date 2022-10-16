@@ -1,4 +1,4 @@
-#include <stdio.h>
+clude <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -509,31 +509,4 @@ int main()
         // Displaying information of
         // connected client
         printf("Connection accepted from %s:%d\n",
-                inet_ntoa(cliAddr.sin_addr),
-                ntohs(cliAddr.sin_port));
-
-        // Print number of clients
-        // connected till now
-        printf("Clients connected: %d\n\n",
-                ++cnt);
-
-        pthread_t t;
-        //int *pclient = malloc(sizeof(int));
-        //*pclient = clientSocket; 
-
-        connec_data_t *parcel_ptr;
-        connec_data_t parcel;
-        parcel.clientSocket = clientSocket;
-        parcel.net_buf = net_buf;
-        parcel.serverAddr = serverAddr;
-        parcel.addr_size = addr_size;
-
-        parcel_ptr = &parcel;
-
-        //HandleConnection(parcel_ptr);
-        
-        pthread_create(&t,NULL,HandleConnection,parcel_ptr);
-       
-    }
-    return 0;
-}
+              

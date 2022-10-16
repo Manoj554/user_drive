@@ -1,6 +1,21 @@
+/*
+*
+*
+*File name : Upload.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Upload a particular file from local storage to the server. 
+*
+*
+*
+*/
+
 #include "../../client.h"
 
-void Upload(int sockfd,char *net_buf,int addrlen)
+void upload(int sockfd,char *net_buf)
 {
     int nBytes;
     FILE *fp;
@@ -40,7 +55,7 @@ void Upload(int sockfd,char *net_buf,int addrlen)
     {
         printf("Inside Loop\n");
         //count++;
-        if(sendFile(fp,net_buf,NET_BUF_SIZE)){
+        if(send_file(fp,net_buf,NET_BUF_SIZE)){
             send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
             clearBuf(net_buf);
 

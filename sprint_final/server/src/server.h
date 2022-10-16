@@ -1,3 +1,18 @@
+/*
+*
+*
+*File name : server.h
+*
+*
+*Author : Team 4
+*
+*
+Description : Header file containing all includes of the modules and commands as MACROS 
+*
+*
+*
+*/
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,7 +29,6 @@
 #include <pthread.h>
 
 /*Modules Included*/
-//#include "./modules/handle-connection/ConnectionData.h"
 #include "./modules/handle-connection/HandleConnection.h"
 #include "./modules/delete-file/DeleteFile.h"
 #include "./modules/authentication/Authentication.h"
@@ -30,9 +44,9 @@
 #define PUSH_UPLOAD_FILE "Upload"
 #define DELETE "Delete"
 #define AUTH_REQUEST "Auth"
-
 #define CMD_SUCCESS "done"
 #define CMD_NOT_SUCCESS "notdone"
+
 
 #define FILE_SIZE 100
 #define IP_ADDRESS "192.168.56.101"

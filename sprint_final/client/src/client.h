@@ -1,3 +1,18 @@
+/*
+*
+*
+*File name : server.h
+*
+*
+*Author : Team 4
+*
+*
+Description : Header file containing all includes of the modules and commands as MACROS 
+*
+*
+*
+*/
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -20,7 +35,7 @@
 #include "./modules/list-all-downloaded/ListAllDownloaded.h"
 #include "./modules/list-all-drive-files/ListAllDriveFiles.h"
 #include "./modules/upload/Upload.h"
-#include "./modules/user-input/UserInput.h"
+#include "./modules/user-interface/UserInterface.h"
 
 
 /*Commands*/

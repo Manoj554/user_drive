@@ -1,4 +1,35 @@
+/*
+*
+*
+*File name : Common.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Contains common functions used across all the modules frequently 
+*
+*
+*
+*/
+
 #include "../../server.h"
+
+/*
+*
+*
+*Function name : clearBuf()
+*
+*
+*Author : Team 4
+*
+*
+Description : Set all memory values to ‘\0’ of the char pointer.
+*
+*
+*
+*/
+
 void clearBuf(char *b)
 {
     int i;
@@ -7,12 +38,43 @@ void clearBuf(char *b)
         b[i] = '\0';
     }
 }
+/*
+*
+*
+*Function name : Cipher()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to encrypt and decrypt the file based on the XOR operation and cipher key.
+*
+*
+*
+*/
+
 char Cipher(char ch)
 {
     return ch ^ cipherKey; //Encryption using XOR
 }
 
-int sendFile(FILE *fp,char *buf,int s)
+/*
+*
+*
+*Function name : send_file()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to encrypt the contents of the file to be sent.
+*
+*
+*
+*/
+
+
+int send_file(FILE *fp,char *buf,int s)
 {
     int i, len;
     if(fp==NULL)
@@ -38,25 +100,39 @@ int sendFile(FILE *fp,char *buf,int s)
 
     return 0;
 }
-int recvFile_save(char *buf,int s,char *file_name)
+
+
+/*
+*
+*
+*Function name : recv_file_save()
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to save the file on server with the specified filename by user.
+*
+*
+*
+*/
+
+
+int recv_file_save(char *buf,int s,char *file_name)
 {
     FILE *fp;
     int i;
     char ch;
-    char file_error[] = "File_Not_Found";
     char base_address[FILE_SIZE] = "./shared-storage/";
     strcat(base_address,file_name);
-/*    if(strcmp(buf,file_error)==0)
-    {
-        return;
-    }
-*/
     fp = fopen(base_address,"w+");
     if(fp == NULL)
     {
         printf("\nFile open error\n");
         return -1;
     }
+
+    //character-by-character encryption and saving file
     for(i = 0;i<s;i++)
     {
         ch = buf[i];
@@ -69,7 +145,6 @@ int recvFile_save(char *buf,int s,char *file_name)
         {
             fputc(ch,fp);
             printf("%c",ch);
-            //sleep(2);
         }
     }
 

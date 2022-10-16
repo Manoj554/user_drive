@@ -1,6 +1,21 @@
+/*
+*
+*
+*File name : ListAllDriveFiles.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to display the files present on the server by sending command and receiving data 
+*
+*
+*
+*/
+
 #include "../../client.h"
 
-void ListAllDriveFiles(int sockfd,char *net_buf,int addrlen)
+void list_all_drive_files(int sockfd,char *net_buf)
 {
     printf("[+] All files in server \n");
 
@@ -15,7 +30,7 @@ void ListAllDriveFiles(int sockfd,char *net_buf,int addrlen)
     {
         clearBuf(net_buf);
         nBytes = recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
-        if(recvFile(net_buf,NET_BUF_SIZE))
+        if(recv_file(net_buf,NET_BUF_SIZE))
         {
             break;
         }

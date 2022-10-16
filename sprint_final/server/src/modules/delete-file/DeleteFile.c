@@ -1,9 +1,24 @@
+/*
+*
+*
+*File name : DeleteFile.c
+*
+*
+*Author : Team 4
+*
+*
+Description : Used to delete the files present on the server. 
+*
+*
+*
+*/
+
 #include "../../server.h"
-void DeleteFile(int sockfd,char *net_buf,int addrlen)
+void delete_file(int sockfd,char *net_buf)
 {
-    char file_name[FILE_SIZE];
+    	char file_name[FILE_SIZE];
         printf("\n[+] Waiting for file name to be deleted....\n");
-        //clearBuf(net_buf);
+
         recv(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
 
        printf("[+] File Name Received: %s\n",net_buf);
@@ -24,5 +39,5 @@ void DeleteFile(int sockfd,char *net_buf,int addrlen)
        }
        send(sockfd,net_buf,NET_BUF_SIZE,sendrecvflag);
        clearBuf(net_buf);
-       //printf("File Received: %s\n",net_buf);
+       
 }
