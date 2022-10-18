@@ -1,0 +1,16 @@
+all: server-release client-release
+
+server-release:
+	gcc -o ./bin/server-release -Werror -lpthread ./server/src/server.c  ./server/src/modules/handle-connection/HandleConnection.c ./server/src/modules/handle-connection/HandleConnection.h ./server/src/modules/delete-file/DeleteFile.c ./server/src/modules/delete-file/DeleteFile.h ./server/src/modules/authentication/Authentication.c ./server/src/modules/authentication/Authentication.h ./server/src/modules/common/Common.c ./server/src/modules/common/Common.h ./server/src/modules/list-all/ListAll.c ./server/src/modules/list-all/ListAll.h ./server/src/modules/push-download-file/PushDownloadFile.c ./server/src/modules/push-download-file/PushDownloadFile.h ./server/src/modules/get-user-file/GetUserFile.c ./server/src/modules/get-user-file/GetUserFile.h
+
+server-debug:
+	gcc -o ./bin/server-debug -g -Werror -lpthread ./server/src/server.c  ./server/src/modules/handle-connection/HandleConnection.c ./server/src/modules/handle-connection/HandleConnection.h ./server/src/modules/delete-file/DeleteFile.c ./server/src/modules/delete-file/DeleteFile.h ./server/src/modules/authentication/Authentication.c ./server/src/modules/authentication/Authentication.h ./server/src/modules/common/Common.c ./server/src/modules/common/Common.h ./server/src/modules/list-all/ListAll.c ./server/src/modules/list-all/ListAll.h ./server/src/modules/push-download-file/PushDownloadFile.c ./server/src/modules/push-download-file/PushDownloadFile.h ./server/src/modules/get-user-file/GetUserFile.c ./server/src/modules/get-user-file/GetUserFile.h
+
+client-release:
+	gcc -o ./bin/client-release -Werror ./client/src/client.c ./client/src/modules/list-all-downloaded/ListAllDownloaded.c ./client/src/modules/list-all-downloaded/ListAllDownloaded.h ./client/src/modules/list-all-drive-files/ListAllDriveFiles.c ./client/src/modules/list-all-drive-files/ListAllDriveFiles.h ./client/src/modules/delete/Delete.c ./client/src/modules/delete/Delete.h ./client/src/modules/authentication-request/AuthenticationRequest.c ./client/src/modules/authentication-request/AuthenticationRequest.h ./client/src/modules/common/Common.c ./client/src/modules/common/Common.h ./client/src/modules/download/Download.c ./client/src/modules/download/Download.h ./client/src/modules/upload/Upload.c ./client/src/modules/upload/Upload.h ./client/src/modules/user-interface/UserInterface.c ./client/src/modules/user-interface/UserInterface.h
+
+client-debug:
+	gcc -o ./bin/client-debug -g -Werror ./client/src/client.c ./client/src/modules/list-all-downloaded/ListAllDownloaded.c ./client/src/modules/list-all-downloaded/ListAllDownloaded.h ./client/src/modules/list-all-drive-files/ListAllDriveFiles.c ./client/src/modules/list-all-drive-files/ListAllDriveFiles.h ./client/src/modules/delete/Delete.c ./client/src/modules/delete/Delete.h ./client/src/modules/authentication-request/AuthenticationRequest.c ./client/src/modules/authentication-request/AuthenticationRequest.h ./client/src/modules/common/Common.c ./client/src/modules/common/Common.h ./client/src/modules/download/Download.c ./client/src/modules/download/Download.h ./client/src/modules/upload/Upload.c ./client/src/modules/upload/Upload.h ./client/src/modules/user-interface/UserInterface.c ./client/src/modules/user-interface/UserInterface.h
+
+clean:
+	rm -rf ./bin/server-release ./bin/client-release
